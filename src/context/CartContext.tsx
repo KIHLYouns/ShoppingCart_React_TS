@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { ShoppingCart } from "../components/ShoppingCart";
 
 type CartItem = {
 	id: number;
@@ -9,6 +11,9 @@ type CartContextType = {
 	cart: CartItem[];
 	addToCart: (id: number, newQuantity: number) => void;
 	removeFromCart: (id: number) => void;
+	openCart: () => void;
+	closeCart: () => void;
+	isOpen: boolean;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -22,11 +27,13 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-	const [cart, setCart] = useState<CartItem[]>([]);
+	const [cart, setCart] = useLocalStorage<CartItem[]>("shopping-cart", []);
+	const [isOpen, setIsOpen] = useState(false);
+
+	const openCart = () => setIsOpen(true);
+	const closeCart = () => setIsOpen(false);
 
 	const addToCart = (id: number, newQuantity: number) => {
-		console.log("Before update:", cart);
-
 		setCart((prevCart = []) => {
 			const existingItem = prevCart.find((item) => item.id === id);
 			if (existingItem) {
@@ -35,7 +42,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 				return [...prevCart, { id, quantity: newQuantity }];
 			}
 		});
-		console.log("After update:", cart);
 	};
 
 	const removeFromCart = (id: number) => {
@@ -44,5 +50,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 		});
 	};
 
-	return <CartContext.Provider value={{ cart, addToCart, removeFromCart }}>{children}</CartContext.Provider>;
+	return (
+		<CartContext.Provider value={{ cart, addToCart, removeFromCart, openCart, closeCart, isOpen }}>
+			{children}
+			<ShoppingCart isOpen={isOpen} />
+		</CartContext.Provider>
+	);
 };
