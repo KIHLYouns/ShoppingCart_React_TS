@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCart } from "../context/CartContext";
 import { Card, Button, Badge } from "react-bootstrap";
 import { FaShoppingCart, FaPlus, FaMinus } from "react-icons/fa";
 import { formattedPrice } from "../utilities/formattedPrice";
@@ -11,7 +11,28 @@ type StoreItemProps = {
 };
 
 const StoreItem = ({ id, name, price, imgUrl }: StoreItemProps) => {
-	const [quantity, setQuantity] = useState(0);
+	const { cart, addToCart, removeFromCart } = useCart();
+	const cartItem = cart.find((item) => item.id === id);
+	const quantity = cartItem ? cartItem.quantity : 0;
+
+	const handlePlus = () => {
+		const newQuantity = quantity + 1;
+		addToCart(id, newQuantity);
+	};
+
+	const handleMinus = () => {
+		if (quantity > 0) {
+			const newQuantity = quantity - 1;
+			addToCart(id, newQuantity);
+			if (newQuantity === 0) {
+				removeFromCart(id);
+			}
+		}
+	};
+
+	const handleRemoveFromCart = () => {
+		removeFromCart(id);
+	};
 
 	return (
 		<Card
@@ -27,21 +48,28 @@ const StoreItem = ({ id, name, price, imgUrl }: StoreItemProps) => {
 					<Card.Text className="text-muted mb-0">{formattedPrice(price)}</Card.Text>
 				</div>
 				{quantity === 0 ? (
-					<Button variant="primary" onClick={() => setQuantity(quantity + 1)}>
+					<Button variant="primary" onClick={handlePlus}>
 						<FaShoppingCart /> Add to Cart
 					</Button>
 				) : (
-					<div className="d-flex justify-content-center align-items-center">
-						<Button variant="danger" onClick={() => setQuantity(quantity - 1)}>
-							<FaMinus />
-						</Button>
-						<span className="mx-2 ">
-							<Badge bg="secondary">{quantity}</Badge>
-						</span>
-						<Button variant="danger" onClick={() => setQuantity(quantity + 1)}>
-							<FaPlus />
-						</Button>
-					</div>
+					<>
+						<div className="d-flex justify-content-center align-items-center">
+							<Button variant="danger" onClick={handleMinus}>
+								<FaMinus />
+							</Button>
+							<span className="mx-2">
+								<Badge bg="secondary">{quantity}</Badge>
+							</span>
+							<Button variant="danger" onClick={handlePlus}>
+								<FaPlus />
+							</Button>
+						</div>
+						<div className="mt-2 d-flex justify-content-center">
+							<Button variant="danger" onClick={handleRemoveFromCart}>
+								Remove from Cart
+							</Button>
+						</div>
+					</>
 				)}
 			</Card.Body>
 		</Card>

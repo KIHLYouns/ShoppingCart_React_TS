@@ -7,7 +7,7 @@ type CartItem = {
 
 type CartContextType = {
 	cart: CartItem[];
-	addToCart: (id: number) => void;
+	addToCart: (id: number, newQuantity: number) => void;
 	removeFromCart: (id: number) => void;
 };
 
@@ -24,25 +24,23 @@ export const useCart = () => {
 export const CartProvider = ({ children }: { children: ReactNode }) => {
 	const [cart, setCart] = useState<CartItem[]>([]);
 
-	const addToCart = (id: number) => {
-		setCart((prevCart) => {
+	const addToCart = (id: number, newQuantity: number) => {
+		console.log("Before update:", cart);
+
+		setCart((prevCart = []) => {
 			const existingItem = prevCart.find((item) => item.id === id);
 			if (existingItem) {
-				return prevCart.map((item) => (item.id === id ? { ...item, quantity: item.quantity + 1 } : item));
+				return prevCart.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item));
 			} else {
-				return [...prevCart, { id, quantity: 1 }];
+				return [...prevCart, { id, quantity: newQuantity }];
 			}
 		});
+		console.log("After update:", cart);
 	};
 
 	const removeFromCart = (id: number) => {
 		setCart((prevCart) => {
-			const existingItem = prevCart.find((item) => item.id === id);
-			if (existingItem && existingItem.quantity > 1) {
-				return prevCart.map((item) => (item.id === id ? { ...item, quantity: item.quantity - 1 } : item));
-			} else {
-				return prevCart.filter((item) => item.id !== id);
-			}
+			return prevCart.filter((item) => item.id !== id);
 		});
 	};
 
